@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pub Golf 🍺</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+:root{--gd:#07180a;--gm:#0f2e14;--gf:#1e5c24;--gb:#2d8a36;--gold:#f5c518;--gold2:#c9980e;--white:#f5f0e0;--cream:#e8dfc0;--red:#e53935;--muted:rgba(245,240,224,0.45);--card:rgba(0,0,0,0.45);--border:rgba(245,197,24,0.25);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Oswald',sans-serif;background:var(--gd);color:var(--white);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 90%,rgba(30,92,36,.5) 0%,transparent 55%),radial-gradient(ellipse at 80% 10%,rgba(45,138,54,.25) 0%,transparent 45%);pointer-events:none;z-index:0;}
+.spots{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.spot{position:absolute;top:-5%;width:2px;height:110vh;background:linear-gradient(to bottom,rgba(255,255,180,.15) 0%,transparent 75%);transform-origin:top center;animation:swing 10s ease-in-out infinite;}
+.spot:nth-child(1){left:12%;animation-duration:9s;}
+.spot:nth-child(2){left:52%;animation-delay:-4s;animation-duration:13s;}
+.spot:nth-child(3){left:85%;animation-delay:-7s;animation-duration:8s;}
+@keyframes swing{0%,100%{transform:rotate(-7deg) scaleX(55);opacity:.4;}50%{transform:rotate(7deg) scaleX(75);opacity:.8;}}
+nav{position:sticky;top:0;z-index:50;background:rgba(7,24,10,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:stretch;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--gold);padding:0 16px;display:flex;align-items:center;gap:8px;border-right:1px solid var(--border);white-space:nowrap;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4caf50;flex-shrink:0;animation:pulse 2s infinite;}
+.sync-dot.off{background:var(--red);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tabs{display:flex;flex:1;overflow-x:auto;}
+.tab-btn{font-family:'Oswald',sans-serif;font-weight:400;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:none;border:none;padding:14px 16px;cursor:pointer;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;}
+.tab-btn:hover{color:var(--white);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.page{display:none;position:relative;z-index:2;padding:28px 20px 80px;max-width:700px;margin:0 auto;}
+.page.active{display:block;}
+/* COUNTDOWN */
+.flag-wrap{text-align:center;margin-bottom:16px;animation:fBounce 2.5s ease-in-out infinite;}
+@keyframes fBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.flag-pole{width:4px;height:70px;background:linear-gradient(to bottom,var(--cream),#a89060);margin:0 auto;border-radius:2px;position:relative;}
+.flag-tri{position:absolute;top:0;left:4px;width:0;height:0;border-top:18px solid transparent;border-bottom:18px solid transparent;border-left:36px solid var(--red);animation:wave .8s ease-in-out infinite alternate;transform-origin:left center;}
+@keyframes wave{0%{transform:skewY(-3deg);}100%{transform:skewY(3deg);}}
+.flag-hole{width:36px;height:9px;background:radial-gradient(ellipse,#000 60%,transparent 100%);margin:0 auto;border-radius:50%;}
+.hero-title{text-align:center;margin-bottom:24px;}
+.eyebrow{font-size:11px;letter-spacing:7px;color:var(--gold);opacity:.7;text-transform:uppercase;margin-bottom:4px;}
+.main-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(64px,16vw,120px);line-height:.92;color:var(--white);text-shadow:0 0 40px rgba(245,197,24,.3),0 4px 0 rgba(0,0,0,.6);}
+.main-title span{color:var(--gold);}
+.sub-title{font-family:'Permanent Marker',cursive;font-size:clamp(16px,3.5vw,22px);color:var(--cream);opacity:.8;transform:rotate(-1.5deg);display:inline-block;margin-top:6px;}
+.countdown-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 30px;text-align:center;backdrop-filter:blur(8px);margin-bottom:24px;}
+.cd-label{font-size:10px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);opacity:.65;margin-bottom:14px;}
+.cd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.cd-unit{background:rgba(0,0,0,.4);border-radius:10px;padding:12px 6px;}
+.cd-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,9vw,58px);line-height:1;color:var(--white);}
+.cd-name{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.cd-date{font-size:11px;letter-spacing:2px;color:var(--muted);margin-top:14px;}
+.started-msg{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);letter-spacing:3px;}
+/* PLAYERS & GENERAL */
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold);margin-bottom:16px;}
+.add-row{display:flex;gap:10px;margin-bottom:20px;}
+.add-row input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--white);font-family:'Oswald',sans-serif;font-size:15px;outline:none;}
+.add-row input::placeholder{color:var(--muted);}
+.add-row input:focus{border-color:rgba(245,197,24,.6);}
+.btn-gold{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;padding:0 24px;height:48px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1200;border:none;border-radius:10px;cursor:pointer;transition:transform .15s,opacity .15s;white-space:nowrap;}
+.btn-gold:hover{transform:translateY(-2px);opacity:.9;}
+.btn-gold:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.item-list{display:flex;flex-direction:column;gap:8px;}
+.item-card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;animation:slideIn .25s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--gf);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);flex-shrink:0;}
+.item-name{flex:1;font-size:16px;}
+.btn-remove{background:none;border:none;color:rgba(229,57,53,.5);font-size:18px;cursor:pointer;padding:4px 8px;transition:color .2s,background .2s;border-radius:6px;}
+.btn-remove:hover{color:var(--red);background:rgba(229,57,53,.1);}
+.empty-msg{text-align:center;color:var(--muted);font-size:14px;padding:30px;letter-spacing:1px;line-height:1.8;}
+.loading{text-align:center;padding:40px;color:var(--muted);letter-spacing:2px;font-size:13px;}
+/* COURSE */
+.hole-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;animation:slideIn .25s ease;}
+.hole-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.hole-badge{font-family:'Bebas Neue',sans-serif;font-size:20px;width:40px;height:40px;border-radius:50%;background:var(--gf);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;}
+.hole-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:1px;}
+.hole-fields{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end;}
+.field-wrap{display:flex;flex-direction:column;gap:4px;}
+.field-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
+.hole-input{background:rgba(0,0,0,.4);border:1px solid rgba(245,197,24,.2);border-radius:8px;padding:9px 12px;color:var(--white);font-family:'Oswald',sans-serif;font-size:14px;outline:none;width:100%;}
+.hole-input:focus{border-color:rgba(245,197,24,.5);}
+.par-input{width:60px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:20px;}
+.btn-del{background:none;border:1px solid rgba(229,57,53,.3);border-radius:8px;color:rgba(229,57,53,.6);padding:9px 12px;cursor:pointer;font-size:16px;transition:all .2s;height:40px;align-self:end;}
+.btn-del:hover{background:rgba(229,57,53,.1);color:var(--red);}
+.add-hole-btn{width:100%;padding:14px;background:rgba(245,197,24,.07);border:1px dashed rgba(245,197,24,.3);border-radius:12px;color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;transition:background .2s;margin-top:4px;}
+.add-hole-btn:hover{background:rgba(245,197,24,.12);}
+/* SCORECARD */
+.player-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.ptab{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s;}
+.ptab:hover{color:var(--white);}
+.ptab.active{background:var(--gf);border-color:var(--gold);color:var(--gold);}
+.sc-wrap{overflow-x:auto;}
+table.sc{width:100%;border-collapse:collapse;min-width:340px;}
+table.sc th{background:var(--gm);color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);}
+table.sc td{padding:8px 10px;text-align:center;font-size:14px;border-bottom:1px solid rgba(245,197,24,.08);}
+table.sc tr:nth-child(even) td{background:rgba(255,255,255,.03);}
+.hole-n{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--gold);}
+.bar-td{text-align:left!important;font-size:13px;color:var(--cream);}
+.par-td{color:var(--gb);font-weight:600;}
+.score-input{width:54px;height:34px;text-align:center;background:rgba(0,0,0,.5);border:1px solid rgba(245,197,24,.2);border-radius:6px;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:20px;outline:none;transition:background .2s,border-color .2s;}
+.score-input:focus{border-color:rgba(245,197,24,.6);}
+.score-input.eagle{background:rgba(245,197,24,.25);border-color:var(--gold);}
+.score-input.birdie{background:rgba(45,138,54,.3);border-color:var(--gb);}
+.score-input.bogey{background:rgba(229,57,53,.15);}
+.score-input.dbogey{background:rgba(229,57,53,.3);}
+.total-row td{font-family:'Bebas Neue',sans-serif;font-size:18px;border-top:2px solid var(--border);padding-top:10px;}
+.total-score{color:var(--gold);font-size:22px;}
+.leaderboard{margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.lb-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);padding:12px 16px;border-bottom:1px solid var(--border);}
+.lb-row{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(245,197,24,.07);}
+.lb-pos{font-family:'Bebas Neue',sans-serif;font-size:22px;width:28px;color:var(--muted);}
+.lb-pos.p1{color:var(--gold);}
+.lb-pos.p2{color:#c0c0c0;}
+.lb-pos.p3{color:#cd7f32;}
+.lb-name{flex:1;font-size:15px;}
+.lb-score{font-family:'Bebas Neue',sans-serif;font-size:22px;}
+.lb-diff{font-size:12px;margin-left:6px;}
+.under{color:#4caf50;}
+.over{color:var(--red);}
+.even-col{color:var(--muted);}
+.grass-bar{position:fixed;bottom:0;left:0;right:0;height:12px;z-index:10;background:repeating-linear-gradient(90deg,var(--gb) 0,var(--gb) 16px,#267a2e 16px,#267a2e 32px);}
+</style>
+</head>
+<body>
+<div class="spots"><div class="spot"></div><div class="spot"></div><div class="spot"></div></div>
+
+<nav>
+  <div class="logo">🍺 PG <div class="sync-dot off" id="sync-dot"></div></div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('countdown',this)">Torneo</button>
+    <button class="tab-btn" onclick="showTab('players',this)">Jugadores</button>
+    <button class="tab-btn" onclick="showTab('course',this)">Recorrido</button>
+    <button class="tab-btn" onclick="showTab('score',this)">Scorecard</button>
+  </div>
+</nav>
+
+<!-- TAB 1: COUNTDOWN -->
+<div id="tab-countdown" class="page active">
+  <div class="flag-wrap">
+    <div class="flag-pole"><div class="flag-tri"></div></div>
+    <div class="flag-hole"></div>
+  </div>
+  <div class="hero-title">
+    <div class="eyebrow">🍺 Edición especial · 9 hoyos · 9 tragos</div>
+    <div class="main-title">PUB<br><span>GOLF</span></div>
+    <div class="sub-title">🍺 El torneo más importante del año</div>
+  </div>
+  <div class="countdown-card">
+    <div class="cd-label">Comienza el 10 de Mayo · Faltan</div>
+    <div id="cd-started" class="started-msg" style="display:none">🏌️ ¡EL TORNEO ARRANCÓ!</div>
+    <div class="cd-grid" id="cd-grid">
+      <div class="cd-unit"><div class="cd-num" id="cd-d">00</div><div class="cd-name">Días</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-h">00</div><div class="cd-name">Horas</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-m">00</div><div class="cd-name">Min</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-s">00</div><div class="cd-name">Seg</div></div>
+    </div>
+    <div class="cd-date">Sábado 10 de Mayo · 21:00hs · ¡Que arranque el torneo!</div>
+  </div>
+  <div style="text-align:center;color:var(--muted);font-size:13px;letter-spacing:2px;">🍺 Anotate · Armá el recorrido · Jugá</div>
+</div>
+
+<!-- TAB 2: PLAYERS -->
+<div id="tab-players" class="page">
+  <div class="section-title">Jugadores</div>
+  <div class="add-row">
+    <input type="text" id="player-input" placeholder="¿Cómo querés figurar?" maxlength="24"
+      onkeydown="if(event.key==='Enter')addPlayer()">
+    <button class="btn-gold" id="btn-add-player" onclick="addPlayer()">+ AGREGAR</button>
+  </div>
+  <div class="item-list" id="player-list"><div class="loading">Conectando...</div></div>
+</div>
+
+<!-- TAB 3: COURSE -->
+<div id="tab-course" class="page">
+  <div class="section-title">Recorrido</div>
+  <div id="holes-list"><div class="loading">Conectando...</div></div>
+  <button class="add-hole-btn" onclick="addHole()">+ AGREGAR HOYO</button>
+</div>
+
+<!-- TAB 4: SCORECARD -->
+<div id="tab-score" class="page">
+  <div class="section-title">Scorecard</div>
+  <div id="score-empty" class="empty-msg" style="display:none">Primero agregá jugadores<br>y armá el recorrido.</div>
+  <div id="score-content">
+    <div class="player-tabs" id="player-tabs"></div>
+    <div class="sc-wrap">
+      <table class="sc">
+        <thead><tr><th>#</th><th>Bar</th><th>Trago</th><th>Par</th><th>Score</th><th>+/-</th></tr></thead>
+        <tbody id="sc-body"></tbody>
+        <tfoot><tr class="total-row" id="sc-total"></tr></tfoot>
+      </table>
+    </div>
+    <div class="leaderboard"><div class="lb-title">🏆 Leaderboard</div><div id="lb-rows"></div></div>
+  </div>
+</div>
+
+<div class="grass-bar"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAA2iex8ZgYoM1JFluJ5Z1N3E8oeIR0qDc",
+  authDomain: "power-golf.firebaseapp.com",
+  projectId: "power-golf",
+  storageBucket: "power-golf.firebasestorage.app",
+  messagingSenderId: "748612111305",
+  appId: "1:748612111305:web:bc9406f900f093f94d7618"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+document.getElementById('sync-dot').classList.remove('off');
+
+let players = [], holes = [], scores = {}, activePlayer = null;
+
+function pad(n){return String(n).padStart(2,'0');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Tabs ──
+window.showTab = function(t,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+  if(t==='score') renderScore();
+};
+
+// ── Countdown ──
+const TARGET = new Date('2026-05-10T21:00:00');
+function tick(){
+  const diff = TARGET - new Date();
+  if(diff <= 0){
+    document.getElementById('cd-grid').style.display='none';
+    document.getElementById('cd-started').style.display='block';
+    return;
+  }
+  document.getElementById('cd-d').textContent=pad(Math.floor(diff/86400000));
+  document.getElementById('cd-h').textContent=pad(Math.floor((diff%86400000)/3600000));
+  document.getElementById('cd-m').textContent=pad(Math.floor((diff%3600000)/60000));
+  document.getElementById('cd-s').textContent=pad(Math.floor((diff%60000)/1000));
+}
+tick(); setInterval(tick,1000);
+
+// ── Players ──
+onSnapshot(collection(db,'players'), snap => {
+  players = [];
+  snap.forEach(d => players.push({id:d.id,...d.data()}));
+  players.sort((a,b)=>a.createdAt-b.createdAt);
+  renderPlayers();
+  if(document.getElementById('tab-score').classList.contains('active')) renderScore();
+});
+
+function renderPlayers(){
+  const list = document.getElementById('player-list');
+  if(players.length===0){
+    list.innerHTML='<div class="empty-msg">Todavía no hay jugadores.<br>¡Sé el primero en anotarte!</div>';
+    return;
+  }
+  list.innerHTML='';
+  players.forEach(p=>{
+    const div=document.createElement('div');
+    div.className='item-card';
+    div.innerHTML=`
+      <div class="avatar">${esc(p.name).slice(0,2).toUpperCase()}</div>
+      <div class="item-name">${esc(p.name)}</div>
+      <button class="btn-remove" onclick="removePlayer('${p.id}')">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+window.addPlayer = async function(){
+  const inp=document.getElementById('player-input');
+  const name=inp.value.trim();
+  if(!name) return;
+  if(players.find(p=>p.name===name)){inp.value='';return;}
+  const btn=document.getElementById('btn-add-player');
+  btn.disabled=true;
+  await setDoc(doc(db,'players','p_'+Date.now()),{name,createdAt:Date.now()});
+  inp.value=''; btn.disabled=false;
+};
+
+window.removePlayer = async function(id){
+  if(!confirm('¿Eliminar este jugador?')) return;
+  await deleteDoc(doc(db,'players',id));
+  const snap=await getDocs(collection(db,'scores'));
+  snap.forEach(async d=>{ if(d.id.startsWith(id+'_')) await deleteDoc(doc(db,'scores',d.id)); });
+};
+
+// ── Holes ──
+const DEFAULT_HOLES=[
+  {bar:'Bar de inicio',drink:'Birra',par:3,order:0},
+  {bar:'Segundo verde',drink:'Fernet',par:4,order:1},
+  {bar:'El rough',drink:'Trago largo',par:3,order:2},
+  {bar:'Bunker Bar',drink:'Whisky',par:4,order:3},
+  {bar:'18th Green',drink:'Campeón elige',par:5,order:4}
+];
+
+let holesSeeded=false;
+onSnapshot(collection(db,'holes'), snap=>{
+  if(snap.empty && !holesSeeded){
+    holesSeeded=true;
+    DEFAULT_HOLES.forEach((h,i)=>setDoc(doc(db,'holes','hole_'+String(i).padStart(3,'0')),h));
+    return;
+  }
+  holes=[];
+  snap.forEach(d=>holes.push({id:d.id,...d.data()}));
+  holes.sort((a,b)=>a.order-b.order);
+  renderCourse();
+  if(document.getElementById('tab-score').classList.contains('active')) renderScore();
+});
+
+function renderCourse(){
+  const container=document.getElementById('holes-list');
+  container.innerHTML='';
+  holes.forEach((h,i)=>{
+    const div=document.createElement('div');
+    div.className='hole-card';
+    div.innerHTML=`
+      <div class="hole-header">
+        <div class="hole-badge">${i+1}</div>
+        <div class="hole-title">Hoyo ${i+1}</div>
+      </div>
+      <div class="hole-fields">
+        <div class="field-wrap">
+          <div class="field-label">Bar</div>
+          <input class="hole-input" placeholder="Nombre del bar" value="${esc(h.bar||'')}"
+            onchange="updateHole('${h.id}','bar',this.value)">
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Trago</div>
+          <input class="hole-input" placeholder="Qué se toma" value="${esc(h.drink||'')}"
+            onchange="updateHole('${h.id}','drink',this.value)">
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Par</div>
+          <input class="hole-input par-input" type="number" min="1" max="9" value="${h.par||4}"
+            onchange="updateHole('${h.id}','par',+this.value)">
+        </div>
+        <button class="btn-del" onclick="deleteHole('${h.id}')">✕</button>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+window.updateHole=async function(id,key,val){
+  await setDoc(doc(db,'holes',id),{[key]:val},{merge:true});
+};
+window.addHole=async function(){
+  await setDoc(doc(db,'holes','hole_'+Date.now()),{bar:'',drink:'',par:4,order:Date.now()});
+};
+window.deleteHole=async function(id){
+  if(holes.length<=1) return;
+  if(!confirm('¿Eliminar este hoyo?')) return;
+  await deleteDoc(doc(db,'holes',id));
+};
+
+// ── Scores ──
+onSnapshot(collection(db,'scores'),snap=>{
+  scores={};
+  snap.forEach(d=>{scores[d.id]=d.data();});
+  if(document.getElementById('tab-score').classList.contains('active')) renderScore();
+});
+
+window.setScore=async function(playerId,holeId,val){
+  const key=playerId+'_'+holeId;
+  await setDoc(doc(db,'scores',key),{playerId,holeId,value:val===''?null:+val},{merge:true});
+};
+
+// ── Scorecard ──
+function renderScore(){
+  const empty=document.getElementById('score-empty');
+  const content=document.getElementById('score-content');
+  if(players.length===0||holes.length===0){
+    empty.style.display='block';content.style.display='none';return;
+  }
+  empty.style.display='none';content.style.display='block';
+  if(!activePlayer||!players.find(p=>p.id===activePlayer)) activePlayer=players[0].id;
+
+  // Tabs
+  const ptabs=document.getElementById('player-tabs');
+  ptabs.innerHTML='';
+  players.forEach(p=>{
+    const btn=document.createElement('button');
+    btn.className='ptab'+(p.id===activePlayer?' active':'');
+    btn.textContent=p.name;
+    btn.onclick=()=>{activePlayer=p.id;renderScore();};
+    ptabs.appendChild(btn);
+  });
+
+  // Rows
+  const tbody=document.getElementById('sc-body');
+  tbody.innerHTML='';
+  let scoredCount=0, totalScore=0;
+
+  holes.forEach((h,i)=>{
+    const key=activePlayer+'_'+h.id;
+    const entry=scores[key];
+    const val=(entry&&entry.value!==null&&entry.value!==undefined)?entry.value:'';
+    const par=h.par||4;
+    if(val!==''){totalScore+=+val;scoredCount++;}
+    const diff=val!==''?(+val-par):null;
+    let cls='';
+    if(diff!==null){
+      if(diff<=-2)cls='eagle';
+      else if(diff===-1)cls='birdie';
+      else if(diff===1)cls='bogey';
+      else if(diff>=2)cls='dbogey';
+    }
+    const diffStr=diff===null?'–':diff===0?'E':diff>0?'+'+diff:''+diff;
+    const dColor=diff===null?'var(--muted)':diff<0?'#4caf50':diff>0?'var(--red)':'var(--muted)';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="hole-n">${i+1}</td>
+      <td class="bar-td">${esc(h.bar||'–')}</td>
+      <td class="bar-td">${esc(h.drink||'–')}</td>
+      <td class="par-td">${par}</td>
+      <td style="padding:4px"><input class="score-input ${cls}" type="number" min="1" max="20"
+        value="${val}" placeholder="–"
+        onchange="setScore('${activePlayer}','${h.id}',this.value);applyClass(this,${par})"></td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${dColor}">${diffStr}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Total
+  const parSoFar=holes.slice(0,scoredCount).reduce((a,h)=>a+(h.par||4),0);
+  const totalPar=holes.reduce((a,h)=>a+(h.par||4),0);
+  const diff=scoredCount>0?totalScore-parSoFar:null;
+  const dStr=diff===null?'–':diff===0?'E':diff>0?'+'+diff:''+diff;
+  const dColor=diff===null?'var(--muted)':diff<0?'#4caf50':diff>0?'var(--red)':'var(--muted)';
+  document.getElementById('sc-total').innerHTML=`
+    <td colspan="3" style="text-align:left;padding-left:12px;color:var(--muted);font-size:13px;letter-spacing:1px;">TOTAL</td>
+    <td class="par-td" style="font-size:18px;">${totalPar}</td>
+    <td class="total-score">${scoredCount>0?totalScore:'–'}</td>
+    <td style="color:${dColor};font-family:'Bebas Neue',sans-serif;font-size:18px;">${dStr}</td>`;
+
+  renderLeaderboard();
+}
+
+window.applyClass=function(input,par){
+  const v=+input.value;
+  if(!input.value){input.className='score-input';return;}
+  const d=v-par;
+  input.className='score-input'+(d<=-2?' eagle':d===-1?' birdie':d===1?' bogey':d>=2?' dbogey':'');
+};
+
+function renderLeaderboard(){
+  const rows=document.getElementById('lb-rows');
+  rows.innerHTML='';
+  const data=players.map(p=>{
+    const vals=holes.map(h=>{
+      const e=scores[p.id+'_'+h.id];
+      return(e&&e.value!==null&&e.value!==undefined)?e.value:null;
+    }).filter(v=>v!==null);
+    const total=vals.reduce((a,b)=>a+b,0);
+    const parSoFar=holes.slice(0,vals.length).reduce((a,h)=>a+(h.par||4),0);
+    return{name:p.name,total:vals.length>0?total:null,played:vals.length,parSoFar};
+  }).sort((a,b)=>{
+    if(a.total===null&&b.total===null)return 0;
+    if(a.total===null)return 1;
+    if(b.total===null)return -1;
+    return a.total-b.total;
+  });
+  data.forEach((p,i)=>{
+    const diff=p.total!==null?p.total-p.parSoFar:null;
+    const dStr=diff===null?'–':diff===0?'E':diff>0?'+'+diff:''+diff;
+    const dCls=diff===null?'even-col':diff<0?'under':diff>0?'over':'even-col';
+    const pos=i===0?'p1':i===1?'p2':i===2?'p3':'';
+    const row=document.createElement('div');
+    row.className='lb-row';
+    row.innerHTML=`
+      <div class="lb-pos ${pos}">${i+1}</div>
+      <div class="lb-name">${esc(p.name)}</div>
+      <div class="lb-score">${p.total!==null?p.total:'–'}</div>
+      <div class="lb-diff ${dCls}">${dStr}</div>`;
+    rows.appendChild(row);
+  });
+}
+</script>
+</body>
+</html>
